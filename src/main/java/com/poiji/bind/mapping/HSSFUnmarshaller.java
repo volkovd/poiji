@@ -1,6 +1,8 @@
 package com.poiji.bind.mapping;
 
 import com.poiji.annotation.ExcelCell;
+import com.poiji.exception.CastingException;
+import com.poiji.exception.ConvertValueException;
 import com.poiji.exception.IllegalCastException;
 import com.poiji.exception.PoijiInstantiationException;
 import com.poiji.bind.PoijiWorkbook;
@@ -12,11 +14,13 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.util.LocaleUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This is the main class that converts the excel sheet fromExcel Java object
@@ -28,13 +32,25 @@ final class HSSFUnmarshaller extends Unmarshaller {
     private final PoijiOptions options;
     private final PoijiWorkbook poijiWorkbook;
     private final Casting casting;
+    private final Locale locale;
 
-    HSSFUnmarshaller(final PoijiWorkbook poijiWorkbook, PoijiOptions options) {
+    HSSFUnmarshaller(final PoijiWorkbook poijiWorkbook, PoijiOptions options, Locale locale) {
         this.poijiWorkbook = poijiWorkbook;
         this.options = options;
-        dataFormatter = new DataFormatter();
-        casting = Casting.getInstance();
+        if (locale == null) {
+            this.locale = LocaleUtil.getUserLocale();
+        } else {
+            this.locale = locale;
+        }
+        this.dataFormatter = new DataFormatter(this.locale);
+        this.casting = Casting.getInstance();
     }
+
+    HSSFUnmarshaller(final PoijiWorkbook poijiWorkbook, PoijiOptions options) {
+        this(poijiWorkbook, options, null);
+    }
+
+
 
     public <T> List<T> unmarshal(Class<T> type) {
         Workbook workbook = poijiWorkbook.workbook();
@@ -79,19 +95,24 @@ final class HSSFUnmarshaller extends Unmarshaller {
             if (index != null) {
                 Class<?> fieldType = field.getType();
                 Cell cell = currentRow.getCell(index.value());
-
                 Object o;
-                if (cell != null) {
-                    String value = dataFormatter.formatCellValue(cell);
-                    o = casting.castValue(fieldType, value, options);
-                } else {
-                    o = casting.castValue(fieldType, "", options);
-                }
                 try {
-                    field.setAccessible(true);
-                    field.set(instance, o);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalCastException("Unexpected cast type {" + o + "} of field" + field.getName());
+                    if (cell != null) {
+                        String value = dataFormatter.formatCellValue(cell);
+                        o = casting.castValue(fieldType, value, options, locale);
+                    } else {
+                        o = casting.castValue(fieldType, "", options, locale);
+                    }
+                    try {
+                        field.setAccessible(true);
+                        field.set(instance, o);
+                    } catch (IllegalAccessException e) {
+                        throw new IllegalCastException("Unexpected cast type {" + o + "} of field" + field.getName());
+                    }
+                } catch (CastingException e) {
+                    Integer rowNum = currentRow.getRowNum();
+                    Integer colNum = cell != null ? cell.getColumnIndex() : null;
+                    throw new ConvertValueException(String.format("Cannot convert value. Row: %s. Col: %s", rowNum, colNum), e, rowNum, colNum);
                 }
             }
         }

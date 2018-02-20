@@ -6,6 +6,7 @@ import com.poiji.option.PoijiOptions;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.util.LocaleUtil;
 import org.apache.poi.util.SAXHelper;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static org.apache.poi.xssf.eventusermodel.XSSFReader.*;
 
@@ -31,10 +33,20 @@ final class XSSFUnmarshaller extends Unmarshaller {
 
     private final PoijiFile poijiFile;
     private final PoijiOptions options;
+    private final Locale locale;
 
-    XSSFUnmarshaller(PoijiFile poijiFile, PoijiOptions options) {
+    XSSFUnmarshaller(PoijiFile poijiFile, PoijiOptions options, Locale locale) {
         this.poijiFile = poijiFile;
         this.options = options;
+        if (locale == null) {
+            this.locale = LocaleUtil.getUserLocale();
+        } else {
+            this.locale = locale;
+        }
+    }
+
+    public XSSFUnmarshaller(PoijiFile poijiFile, PoijiOptions options) {
+        this(poijiFile, options, null);
     }
 
     @Override
@@ -71,7 +83,7 @@ final class XSSFUnmarshaller extends Unmarshaller {
         InputSource sheetSource = new InputSource(sheetInputStream);
         try {
             XMLReader sheetParser = SAXHelper.newXMLReader();
-            PoijiHandler poijiHandler = new PoijiHandler(type, options);
+            PoijiHandler poijiHandler = new PoijiHandler(type, options, this.locale);
             ContentHandler contentHandler =
                     new XSSFSheetXMLHandler(styles, null, readOnlySharedStringsTable, poijiHandler, formatter, false);
             sheetParser.setContentHandler(contentHandler);

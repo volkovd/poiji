@@ -9,7 +9,7 @@ public final class PoijiOptions {
 
     private int skip;
     private String datePattern;
-    private boolean preferNullOverDefault;
+    private boolean preferNullOverDefault = true;
     private int sheetIndex;
 
     private PoijiOptions() {

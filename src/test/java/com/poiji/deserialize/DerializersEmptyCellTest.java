@@ -67,7 +67,7 @@ public class DerializersEmptyCellTest {
         employee1.setEmployeeId(123123L);
         employee1.setSurname("Derue");
         employee1.setSingle(false);
-        employee1.setAge(0);
+        employee1.setAge(null);
         employee1.setBirthday("5/3/1997");
         employees.add(employee1);
 
@@ -75,7 +75,7 @@ public class DerializersEmptyCellTest {
         employee2.setEmployeeId(135923L);
         employee2.setName("Paul");
         employee2.setSurname("Raul");
-        employee2.setSingle(false);
+        employee2.setSingle(null);
         employee2.setAge(31);
         employee2.setBirthday("4/9/1986");
         employees.add(employee2);

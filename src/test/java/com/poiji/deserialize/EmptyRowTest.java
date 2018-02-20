@@ -26,12 +26,11 @@ public class EmptyRowTest {
 
     @Parameters
     public static Object[] excel() throws Exception {
-        return new Object[]{"src/test/resources/synonyms-test.xlsx"};
+        return new Object[]{"src/test/resources/withExtraCols.xlsx"};
     }
 
     @Test
-    public void shouldRetrieveDataRow() {
-
+    public void shouldIgnoreAxtraColumns() {
         List<Employee> actualEmployees = Poiji.fromExcel(new File(path), Employee.class);
         assertThat(actualEmployees, notNullValue());
         assertThat(actualEmployees.size(), is(101));

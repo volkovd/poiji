@@ -8,7 +8,7 @@ import com.poiji.annotation.ExcelCell;
 public class Employee {
 
     @ExcelCell(0)
-    protected long employeeId;
+    protected Long employeeId;
 
     @ExcelCell(1)
     protected String name = "";
@@ -17,10 +17,10 @@ public class Employee {
     protected String surname;
 
     @ExcelCell(3)
-    protected int age;
+    protected Integer age;
 
     @ExcelCell(4)
-    protected boolean single;
+    protected Boolean single;
 
     @ExcelCell(5)
     protected String birthday;
@@ -29,11 +29,11 @@ public class Employee {
         We normally don't need getters and setters to map excel cells to fields
      */
 
-    public long getEmployeeId() {
+    public Long getEmployeeId() {
         return employeeId;
     }
 
-    public void setEmployeeId(long employeeId) {
+    public void setEmployeeId(Long employeeId) {
         this.employeeId = employeeId;
     }
 
@@ -53,19 +53,19 @@ public class Employee {
         this.surname = surname;
     }
 
-    public int getAge() {
+    public Integer getAge() {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(Integer age) {
         this.age = age;
     }
 
-    public boolean isSingle() {
+    public Boolean getSingle() {
         return single;
     }
 
-    public void setSingle(boolean single) {
+    public void setSingle(Boolean single) {
         this.single = single;
     }
 

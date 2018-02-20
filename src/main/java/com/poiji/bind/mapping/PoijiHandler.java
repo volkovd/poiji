@@ -1,6 +1,8 @@
 package com.poiji.bind.mapping;
 
 import com.poiji.annotation.ExcelCell;
+import com.poiji.exception.CastingException;
+import com.poiji.exception.ConvertValueException;
 import com.poiji.exception.IllegalCastException;
 import com.poiji.option.PoijiOptions;
 import com.poiji.util.Casting;
@@ -11,6 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFComment;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.*;
 
@@ -31,11 +34,14 @@ final class PoijiHandler<T> implements SheetContentsHandler {
 
     private final Casting casting;
 
-    PoijiHandler(Class<T> type, PoijiOptions options) {
+    private final Locale locale;
+
+    PoijiHandler(Class<T> type, PoijiOptions options, Locale locale) {
         this.type = type;
         this.options = options;
 
         casting = Casting.getInstance();
+        this.locale = locale;
     }
 
     List<T> getDataset() {
@@ -53,15 +59,15 @@ final class PoijiHandler<T> implements SheetContentsHandler {
         return newInstance;
     }
 
-    private void setFieldValue(String content, Class<? super T> subclass, int column) {
+    private void setFieldValue(String content, Class<? super T> subclass, int column, int row) {
         if (subclass != Object.class) {
-            setValue(content, subclass, column);
+            setValue(content, subclass, column, row);
 
-            setFieldValue(content, subclass.getSuperclass(), column);
+            setFieldValue(content, subclass.getSuperclass(), column, row);
         }
     }
 
-    private void setValue(String content, Class<? super T> type, int column) {
+    private void setValue(String content, Class<? super T> type, int column, int row) {
         for (Field field : type.getDeclaredFields()) {
 
             ExcelCell index = field.getAnnotation(ExcelCell.class);
@@ -69,13 +75,17 @@ final class PoijiHandler<T> implements SheetContentsHandler {
                 Class<?> fieldType = field.getType();
 
                 if (column == index.value()) {
-                    Object o = casting.castValue(fieldType, content, options);
-
                     try {
-                        field.setAccessible(true);
-                        field.set(instance, o);
-                    } catch (IllegalAccessException e) {
-                        throw new IllegalCastException("Unexpected cast type {" + o + "} of field" + field.getName());
+                        Object o = null;
+                        o = casting.castValue(fieldType, content, options, locale);
+                        try {
+                            field.setAccessible(true);
+                            field.set(instance, o);
+                        } catch (IllegalAccessException e) {
+                            throw new IllegalCastException("Unexpected cast type {" + o + "} of field" + field.getName());
+                        }
+                    } catch (CastingException e) {
+                        throw new ConvertValueException(String.format("Cannot convert value. Row: %s. Col: %s", row, column), e, row, column);
                     }
                 }
             }
@@ -116,7 +126,7 @@ final class PoijiHandler<T> implements SheetContentsHandler {
 
         internalCount = row;
         int column = cellAddress.getColumn();
-        setFieldValue(formattedValue, type, column);
+        setFieldValue(formattedValue, type, column, row);
     }
 
     @Override

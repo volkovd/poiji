@@ -1,12 +1,13 @@
 package com.poiji.util;
 
+import com.poiji.exception.CastingException;
 import com.poiji.option.PoijiOptions;
 
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
+import java.util.Locale;
 
 /**
  * Created by hakan on 22/01/2017.
@@ -22,73 +23,109 @@ public final class Casting {
     private Casting() {
     }
 
-    private Integer integerValue(String value) {
+    private Integer integerValue(String value, Locale locale) throws CastingException {
         try {
-            return new Integer(value);
-        } catch (NumberFormatException nfe) {
-            return 0;
+            if (isValueEmpty(value)) {
+                return null;
+            } else {
+                return parseNumber(value, locale).intValue();
+            }
+        } catch (ParseException e) {
+            throw new CastingException(e);
         }
     }
 
-    private Long longValue(String value) {
+    private Number parseNumber(String value, Locale locale) throws ParseException {
+        NumberFormat numberFormat = NumberFormat.getInstance(locale);
+        return numberFormat.parse(value);
+    }
+
+    private Long longValue(String value, Locale locale) throws CastingException {
         try {
-            return new Long(value);
-        } catch (NumberFormatException nfe) {
-            return 0L;
+            if (isValueEmpty(value)) {
+                return null;
+            } else {
+                return parseNumber(value, locale).longValue();
+            }
+        } catch (ParseException e) {
+            throw new CastingException(e);
         }
     }
 
-    private Double doubleValue(String value) {
+    private Double doubleValue(String value, Locale locale) throws CastingException {
         try {
-            return new Double(value);
-        } catch (NumberFormatException nfe) {
-            return 0d;
+            if (isValueEmpty(value)) {
+                return null;
+            } else {
+                return parseNumber(value, locale).doubleValue();
+            }
+        } catch (ParseException e) {
+            throw new CastingException(e);
         }
     }
 
-    private Float floatValue(String value) {
+    private Float floatValue(String value, Locale locale) throws CastingException {
         try {
-            return new Float(value);
-        } catch (NumberFormatException nfe) {
-            return 0f;
+            if (isValueEmpty(value)) {
+                return null;
+            } else {
+                return parseNumber(value, locale).floatValue();
+            }
+        } catch (ParseException e) {
+            throw new CastingException(e);
         }
     }
 
-    private Date dateValue(String value, PoijiOptions options) {
+    private Date dateValue(String value, PoijiOptions options, Locale locale) throws CastingException {
         try {
+            if (isValueEmpty(value)) {
+                return null;
+            }
             final SimpleDateFormat sdf = new SimpleDateFormat(options.datePattern());
             return sdf.parse(value);
         } catch (ParseException e) {
-            if (Boolean.TRUE.equals(options.preferNullOverDefault())) {
-                return null;
+            throw new CastingException(e);
+        }
+    }
+
+    public Object castValue(Class<?> fieldType, String value, PoijiOptions options, Locale locale) throws CastingException {
+        Object o;
+        if (fieldType.equals(Integer.class) || fieldType.equals(Integer.TYPE)) {
+            o = integerValue(value, locale);
+        } else if (fieldType.equals(Long.class) || fieldType.equals(Long.TYPE)) {
+            o = longValue(value, locale);
+        } else if (fieldType.equals(Double.class) || fieldType.equals(Double.TYPE)) {
+            o = doubleValue(value, locale);
+        } else if (fieldType.equals(Float.class) || fieldType.equals(Float.TYPE)) {
+            o = floatValue(value, locale);
+        } else if (fieldType.equals(Boolean.class) || fieldType.equals(Boolean.TYPE)) {
+            o = booleanValue(value, locale);
+        } else if (fieldType.equals(Date.class)) {
+            o = dateValue(value, options, locale);
+        } else
+            o = value;
+        return o;
+    }
+
+    private Object booleanValue(String value, Locale locale) throws CastingException {
+        if (isValueEmpty(value)) {
+            return null;
+        } else {
+            if ("true".equalsIgnoreCase(value) || "y".equalsIgnoreCase(value) || "j".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value) || "ja".equalsIgnoreCase(value)) {
+                return true;
+            } else if ("false".equalsIgnoreCase(value) || "n".equalsIgnoreCase(value) || "no".equalsIgnoreCase(value) || "nein".equalsIgnoreCase(value)) {
+                return false;
             } else {
-                Calendar calendar = Calendar.getInstance();
-                return calendar.getTime();
+                throw new CastingException(String.format("Cannot parse \"%s\" as boolean", value));
             }
         }
     }
 
-    public Object castValue(Class<?> fieldType, String value, PoijiOptions options) {
-        Object o;
-        if (fieldType.getName().equals("int")) {
-            o = integerValue(Objects.equals(value, "") ? "0" : value);
-
-        } else if (fieldType.getName().equals("long")) {
-            o = longValue(Objects.equals(value, "") ? "0" : value);
-
-        } else if (fieldType.getName().equals("double")) {
-            o = doubleValue(Objects.equals(value, "") ? "0" : value);
-
-        } else if (fieldType.getName().equals("float")) {
-            o = floatValue(Objects.equals(value, "") ? "0" : value);
-
-        } else if (fieldType.getName().equals("boolean")) {
-            o = Boolean.valueOf(value);
-        } else if (fieldType.getName().equals("java.util.Date")) {
-
-            o = dateValue(value, options);
-        } else
-            o = value;
-        return o;
+    private boolean isValueEmpty(String value) {
+        if (value == null || "".equals(value.trim())) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
