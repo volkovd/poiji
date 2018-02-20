@@ -70,7 +70,9 @@ final class HSSFUnmarshaller extends Unmarshaller {
 
             if (maxPhysicalNumberOfRows > list.size()) {
                 T t = deserialize0(currentRow, type);
-                list.add(t);
+                if (t != null) {
+                    list.add(t);
+                }
             }
         }
 
@@ -78,6 +80,18 @@ final class HSSFUnmarshaller extends Unmarshaller {
     }
 
     private <T> T deserialize0(Row currentRow, Class<T> type) {
+        String dataFlag = this.options.getDataFlag();
+        String commentFlag = this.options.getCommentFlag();
+        if (dataFlag != null || commentFlag != null) {
+            Cell firstCell = currentRow.getCell(0);
+            String firstCellStringValue = firstCell.getStringCellValue();
+            if (commentFlag != null && commentFlag.equals(firstCellStringValue)) {
+                return null;
+            }
+            if (dataFlag != null && !dataFlag.equals(firstCellStringValue)) {
+                return null;
+            }
+        }
         T instance;
         try {
             instance = type.getDeclaredConstructor().newInstance();

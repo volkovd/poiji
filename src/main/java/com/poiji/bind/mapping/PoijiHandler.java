@@ -36,6 +36,8 @@ final class PoijiHandler<T> implements SheetContentsHandler {
 
     private final Locale locale;
 
+    private boolean skipRow;
+
     PoijiHandler(Class<T> type, PoijiOptions options, Locale locale) {
         this.type = type;
         this.options = options;
@@ -97,10 +99,8 @@ final class PoijiHandler<T> implements SheetContentsHandler {
         if (rowNum == 1) {
             dataset = new ArrayList<>();
         }
-
-        if (rowNum + 1 > options.skip()) {
-            instance = newInstanceOf(type);
-        }
+        //when dataFlag is defined, all rows which does not have flag should be ignored
+        this.skipRow = this.options.getDataFlag() != null;
     }
 
     @Override
@@ -109,14 +109,13 @@ final class PoijiHandler<T> implements SheetContentsHandler {
         if (internalCount != rowNum)
             return;
 
-        if (rowNum + 1 > options.skip()) {
+        if (rowNum + 1 > options.skip() && !this.skipRow) {
             dataset.add(instance);
         }
     }
 
     @Override
     public void cell(String cellReference, String formattedValue, XSSFComment comment) {
-
         CellAddress cellAddress = new CellAddress(cellReference);
         int row = cellAddress.getRow();
 
@@ -124,9 +123,27 @@ final class PoijiHandler<T> implements SheetContentsHandler {
             return;
         }
 
+        if (cellAddress.getColumn() == 0) {
+            String dataFlag = this.options.getDataFlag();
+            String commentFlag = this.options.getCommentFlag();
+            if (dataFlag != null || commentFlag != null) {
+                if (commentFlag != null && commentFlag.equals(formattedValue)) {
+                    this.skipRow = true;
+                }
+                if (dataFlag != null && dataFlag.equals(formattedValue)) {
+                    this.skipRow = false;
+                }
+            }
+            if (row + 1 > options.skip() && !this.skipRow) {
+                instance = newInstanceOf(type);
+            }
+        }
+
         internalCount = row;
         int column = cellAddress.getColumn();
-        setFieldValue(formattedValue, type, column, row);
+        if (!this.skipRow) {
+            setFieldValue(formattedValue, type, column, row);
+        }
     }
 
     @Override

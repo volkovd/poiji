@@ -11,6 +11,8 @@ public final class PoijiOptions {
     private String datePattern;
     private boolean preferNullOverDefault = true;
     private int sheetIndex;
+    private String dataFlag;
+    private String commentFlag;
 
     private PoijiOptions() {
         super();
@@ -57,12 +59,41 @@ public final class PoijiOptions {
         return skip;
     }
 
+    /**
+     * Text in first column used to mark data rows.
+     * If null all rows will be used as data except rows marked as comment.
+     * @return
+     */
+    public String getDataFlag() {
+        return dataFlag;
+    }
+
+    public PoijiOptions setDataFlag(String dataFlag) {
+        this.dataFlag = dataFlag;
+        return this;
+    }
+
+    /**
+     * Text in first column used to mark row as comment.
+     * @return
+     */
+    public String getCommentFlag() {
+        return commentFlag;
+    }
+
+    public PoijiOptions setCommentFlag(String commentFlag) {
+        this.commentFlag = commentFlag;
+        return this;
+    }
+
     public static class PoijiOptionsBuilder {
 
         private int skip = 1;
         private String datePattern = DEFAULT_DATE_PATTERN;
         private boolean preferNullOverDefault = false;
         private int sheetIndex;
+        private String dataFlag;
+        private String commentFlag;
 
         private PoijiOptionsBuilder() {
         }
@@ -76,7 +107,9 @@ public final class PoijiOptions {
                     .setSkip(skip)
                     .setPreferNullOverDefault(preferNullOverDefault)
                     .setDatePattern(datePattern)
-                    .setSheetIndex(sheetIndex);
+                    .setSheetIndex(sheetIndex)
+                    .setDataFlag(dataFlag)
+                    .setCommentFlag(commentFlag);
         }
 
         public static PoijiOptionsBuilder settings() {
@@ -126,6 +159,17 @@ public final class PoijiOptions {
             this.sheetIndex = sheetIndex;
             return this;
         }
+
+        public PoijiOptionsBuilder dataFlag(String dataFlag) {
+            this.dataFlag = dataFlag;
+            return this;
+        }
+
+        public PoijiOptionsBuilder commentFlag(String commentFlag) {
+            this.commentFlag = commentFlag;
+            return this;
+        }
+
 
         /**
          * Skip the n rows of the excel data. Default is 1
