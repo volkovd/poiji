@@ -61,7 +61,7 @@ public class DerializersEmptyCellTest {
     }
 
     private static List<Employee> unmarshalling() {
-        List<Employee> employees = new ArrayList<>(2);
+        List<Employee> employees = new ArrayList<Employee>(2);
 
         Employee employee1 = new Employee();
         employee1.setEmployeeId(123123L);

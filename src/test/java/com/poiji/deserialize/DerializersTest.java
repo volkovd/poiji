@@ -89,7 +89,8 @@ public class DerializersTest {
     }
 
     private static List<Employee> unmarshalling() {
-        List<Employee> employees = new ArrayList<>(3);
+        List<Employee> employees;
+        employees = new ArrayList<Employee>(3);
 
         Employee employee1 = new Employee();
         employee1.setEmployeeId(123923L);

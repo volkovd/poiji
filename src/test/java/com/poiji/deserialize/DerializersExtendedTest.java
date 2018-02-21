@@ -104,7 +104,7 @@ public class DerializersExtendedTest {
     }
 
     private static List<EmployeeExtended> unmarshalling() throws ParseException {
-        List<EmployeeExtended> employees = new ArrayList<>(3);
+        List<EmployeeExtended> employees = new ArrayList<EmployeeExtended>(3);
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/mm/yyyy");
 

@@ -54,7 +54,13 @@ final class PoijiHandler<T> implements SheetContentsHandler {
         T newInstance;
         try {
             newInstance = type.getDeclaredConstructor().newInstance();
-        } catch (NoSuchMethodException| InvocationTargetException | IllegalAccessException | InstantiationException e) {
+        } catch (NoSuchMethodException e) {
+            throw new IllegalCastException("Cannot create a new instance of " + type.getName());
+        } catch (InvocationTargetException e) {
+            throw new IllegalCastException("Cannot create a new instance of " + type.getName());
+        } catch (IllegalAccessException e) {
+            throw new IllegalCastException("Cannot create a new instance of " + type.getName());
+        } catch (InstantiationException e) {
             throw new IllegalCastException("Cannot create a new instance of " + type.getName());
         }
 
@@ -97,7 +103,7 @@ final class PoijiHandler<T> implements SheetContentsHandler {
     @Override
     public void startRow(int rowNum) {
         if (rowNum == 1) {
-            dataset = new ArrayList<>();
+            dataset = new ArrayList<T>();
         }
         //when dataFlag is defined, all rows which does not have flag should be ignored
         this.skipRow = this.options.getDataFlag() != null;

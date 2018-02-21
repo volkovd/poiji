@@ -51,8 +51,9 @@ final class XSSFUnmarshaller extends Unmarshaller {
     @Override
     @SuppressWarnings("unchecked")
     public <T> List<T> unmarshal(Class<T> type) {
-        try (OPCPackage open = OPCPackage.open(poijiFile.file())) {
-
+        OPCPackage open = null;
+        try {
+            open = OPCPackage.open(poijiFile.file());
             ReadOnlySharedStringsTable readOnlySharedStringsTable = new ReadOnlySharedStringsTable(open);
             XSSFReader xssfReader = new XSSFReader(open);
             StylesTable styles = xssfReader.getStylesTable();
@@ -61,16 +62,37 @@ final class XSSFUnmarshaller extends Unmarshaller {
             int index = 0;
 
             while (iter.hasNext()) {
-                try (InputStream stream = iter.next()) {
+                InputStream stream = null;
+                try {
+                    stream = iter.next();
                     if (index == options.sheetIndex()) {
                         return processSheet(styles, readOnlySharedStringsTable, type, stream);
+                    }
+                } finally {
+                    if (stream != null) {
+                        stream.close();
                     }
                 }
                 ++index;
             }
-            return new ArrayList<>();
-        } catch (SAXException | IOException | OpenXML4JException e) {
+            return new ArrayList<T>();
+        } catch (SAXException e) {
             throw new PoijiException("Problem occurred while reading data", e);
+
+        } catch (IOException e) {
+            throw new PoijiException("Problem occurred while reading data", e);
+
+        } catch (OpenXML4JException e) {
+            throw new PoijiException("Problem occurred while reading data", e);
+
+        } finally {
+            if (open != null) {
+                try {
+                    open.close();
+                } catch (IOException e) {
+                    //noop
+                }
+            }
         }
     }
 
@@ -88,7 +110,11 @@ final class XSSFUnmarshaller extends Unmarshaller {
             sheetParser.setContentHandler(contentHandler);
             sheetParser.parse(sheetSource);
             return poijiHandler.getDataset();
-        } catch (ParserConfigurationException | SAXException | IOException e) {
+        } catch (ParserConfigurationException e) {
+            throw new PoijiException("Problem occurred while reading data", e);
+        } catch (SAXException e) {
+            throw new PoijiException("Problem occurred while reading data", e);
+        } catch (IOException e) {
             throw new PoijiException("Problem occurred while reading data", e);
         }
     }

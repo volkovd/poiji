@@ -83,7 +83,7 @@ public class InheritanceTest {
     }
 
     private static List<Car> unmarshalling() {
-        List<Car> cars = new ArrayList<>(2);
+        List<Car> cars = new ArrayList<Car>(2);
 
         Car car1 = new Car();
         car1.setName("Honda Civic");

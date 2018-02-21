@@ -20,7 +20,9 @@ final class PoijiHSSHWorkbook extends PoijiWorkbook {
     public Workbook workbook() {
         try {
             return WorkbookFactory.create(poijiFile.file());
-        } catch (InvalidFormatException | IOException e) {
+        } catch (InvalidFormatException e) {
+            throw new PoijiException("Problem occurred while creating HSSFWorkbook", e);
+        } catch (IOException e) {
             throw new PoijiException("Problem occurred while creating HSSFWorkbook", e);
         }
     }

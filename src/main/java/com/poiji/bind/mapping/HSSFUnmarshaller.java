@@ -58,7 +58,8 @@ final class HSSFUnmarshaller extends Unmarshaller {
 
         int skip = options.skip();
         int maxPhysicalNumberOfRows = sheet.getPhysicalNumberOfRows() + 1 - skip;
-        List<T> list = new ArrayList<>(maxPhysicalNumberOfRows);
+        List<T> list;
+        list = new ArrayList<T>(maxPhysicalNumberOfRows);
 
         for (Row currentRow : sheet) {
 
@@ -95,7 +96,13 @@ final class HSSFUnmarshaller extends Unmarshaller {
         T instance;
         try {
             instance = type.getDeclaredConstructor().newInstance();
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
+        } catch (NoSuchMethodException e) {
+            throw new PoijiInstantiationException("Cannot create a new instance of " + type.getName());
+        } catch (InvocationTargetException e) {
+            throw new PoijiInstantiationException("Cannot create a new instance of " + type.getName());
+        } catch (IllegalAccessException e) {
+            throw new PoijiInstantiationException("Cannot create a new instance of " + type.getName());
+        } catch (InstantiationException e) {
             throw new PoijiInstantiationException("Cannot create a new instance of " + type.getName());
         }
 
