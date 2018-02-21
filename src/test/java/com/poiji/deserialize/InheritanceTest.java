@@ -74,6 +74,7 @@ public class InheritanceTest {
 
         } catch (Exception e) {
             if (expectedException == null) {
+                e.printStackTrace();
                 fail(e.getMessage());
             } else {
                 assertThat(e, instanceOf(expectedException));

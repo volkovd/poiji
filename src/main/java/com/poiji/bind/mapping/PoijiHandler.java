@@ -111,6 +111,7 @@ final class PoijiHandler<T> implements SheetContentsHandler {
 
         if (rowNum + 1 > options.skip() && !this.skipRow) {
             dataset.add(instance);
+            instance = null;
         }
     }
 
@@ -134,9 +135,10 @@ final class PoijiHandler<T> implements SheetContentsHandler {
                     this.skipRow = false;
                 }
             }
-            if (row + 1 > options.skip() && !this.skipRow) {
-                instance = newInstanceOf(type);
-            }
+        }
+
+        if (row + 1 > options.skip() && !this.skipRow && instance == null) {
+            instance = newInstanceOf(type);
         }
 
         internalCount = row;

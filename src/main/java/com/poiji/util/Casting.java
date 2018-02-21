@@ -28,9 +28,9 @@ public final class Casting {
             if (isValueEmpty(value)) {
                 return null;
             } else {
-                return parseNumber(value, locale).intValue();
+                return Integer.parseInt(value);
             }
-        } catch (ParseException e) {
+        } catch (NumberFormatException e) {
             throw new CastingException(e);
         }
     }
@@ -45,9 +45,9 @@ public final class Casting {
             if (isValueEmpty(value)) {
                 return null;
             } else {
-                return parseNumber(value, locale).longValue();
+                return Long.parseLong(value);
             }
-        } catch (ParseException e) {
+        } catch (NumberFormatException e) {
             throw new CastingException(e);
         }
     }
@@ -73,6 +73,18 @@ public final class Casting {
             }
         } catch (ParseException e) {
             throw new CastingException(e);
+        }
+    }
+
+    private Boolean booleanValue(String value) throws CastingException {
+        try {
+            if (isValueEmpty(value)) {
+                return null;
+            } else {
+                return Boolean.valueOf(value);
+            }
+        } catch (NumberFormatException nfe) {
+            throw new CastingException(nfe);
         }
     }
 

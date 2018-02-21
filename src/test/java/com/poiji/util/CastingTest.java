@@ -8,11 +8,10 @@ import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class CastingTest {
 
@@ -33,13 +32,13 @@ public class CastingTest {
     @Test
     public void castDate() throws Exception {
 
-        PoijiOptions options = PoijiOptionsBuilder.settings().datePattern("dd/MM/yyyy").build();
+        PoijiOptions options = PoijiOptionsBuilder.settings().datePattern("dd.MM.yyyy").build();
 
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
 
-        Date expectedDate = formatter.parse("05/01/2016");
+        Date expectedDate = formatter.parse("05.01.2016");
 
-        Date testDate = (Date) casting.castValue(Date.class, "05/01/2016", options, null);
+        Date testDate = (Date) casting.castValue(Date.class, "05.01.2016", options, Locale.GERMANY);
 
         assertEquals(expectedDate, testDate);
     }
@@ -49,7 +48,7 @@ public class CastingTest {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
 
-        Integer testVal = (Integer) casting.castValue(int.class, "10", options, null);
+        Integer testVal = (Integer) casting.castValue(int.class, "10", options, Locale.GERMANY);
 
         assertEquals(new Integer(10), testVal);
     }
@@ -59,21 +58,22 @@ public class CastingTest {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
 
-        Double testVal = (Double) casting.castValue(double.class, "81.56891", options, null);
+        Double testVal = (Double) casting.castValue(double.class, "81,56891", options, Locale.GERMANY);
 
         assertEquals(new Double(81.56891), testVal);
     }
 
     @Test
-    public void castDoubleException() throws CastingException {
+    public void castDoubleException() {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
 
-        Integer value = (Integer) casting.castValue(int.class, "81.56891", options, null);
-
-        int expectedValue = 0;
-
-        assertThat(expectedValue, is(value));
+        try {
+            Integer value = (Integer) casting.castValue(int.class, "81,56891", options, Locale.GERMANY);
+            fail("Exception should be thrown");
+        } catch (CastingException e) {
+            //OK!
+        }
     }
 
     @Test
@@ -81,8 +81,18 @@ public class CastingTest {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
 
-        Boolean testVal = (Boolean) casting.castValue(boolean.class, "True", options, null);
-
+        Boolean testVal = (Boolean) casting.castValue(boolean.class, "True", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "TruE", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "ja", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "Ja", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "j", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "J", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "Y", options, Locale.GERMANY);
+        testVal &= (Boolean) casting.castValue(boolean.class, "y", options, Locale.GERMANY);
+        testVal &= !(Boolean) casting.castValue(boolean.class, "FalSe", options, Locale.GERMANY);
+        testVal &= !(Boolean) casting.castValue(boolean.class, "nein", options, Locale.GERMANY);
+        testVal &= !(Boolean) casting.castValue(boolean.class, "n", options, Locale.GERMANY);
+        testVal &= !(Boolean) casting.castValue(boolean.class, "N", options, Locale.GERMANY);
         assertEquals(true, testVal);
     }
 
@@ -91,17 +101,16 @@ public class CastingTest {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
 
-        Float testVal = (Float) casting.castValue(float.class, "81.56891", options, null);
+        Float testVal = (Float) casting.castValue(float.class, "81,56891", options, Locale.GERMANY);
 
         assertEquals(new Float(81.56891), testVal);
     }
 
-    @Test(expected = ClassCastException.class)
+    @Test(expected = CastingException.class)
     public void castLongWrongFormat() throws CastingException {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
-
-        Long testVal = (Long) casting.castValue(int.class, "9223372036854775808", options, null);
+        Long testVal = (Long) casting.castValue(int.class, "9223372036854775808", options, Locale.GERMANY);
     }
 
     @Test
@@ -109,7 +118,7 @@ public class CastingTest {
 
         PoijiOptions options = PoijiOptionsBuilder.settings().build();
 
-        Long testVal = (Long) casting.castValue(long.class, "9223372036854775807", options, null);
+        Long testVal = (Long) casting.castValue(long.class, "9223372036854775807", options, Locale.GERMANY);
 
         assertEquals(new Long("9223372036854775807"), testVal);
     }

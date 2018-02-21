@@ -33,6 +33,6 @@ public class EmptyRowTest {
     public void shouldIgnoreAxtraColumns() {
         List<Employee> actualEmployees = Poiji.fromExcel(new File(path), Employee.class);
         assertThat(actualEmployees, notNullValue());
-        assertThat(actualEmployees.size(), is(101));
+        assertThat(actualEmployees.size(), is(3));
     }
 }
